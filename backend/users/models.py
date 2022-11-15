@@ -1,8 +1,11 @@
-from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class User(AbstractUser):
-    '''User model.'''
+from django.contrib.auth import get_user_model  # временно
+User = get_user_model()  # временно
+
+'''class User(AbstractUser):
+    """User model."""
     # USER = 'user'
     # MODERATOR = 'moderator'
     # ADMIN = 'admin'
@@ -49,3 +52,30 @@ class User(AbstractUser):
     # @property
     # def is_admin(self):
     #     return self.role == self.ADMIN
+'''
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following'
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'author',),
+                name='unique_follower'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user}, {self.author}'
