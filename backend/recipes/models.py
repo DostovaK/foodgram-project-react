@@ -13,7 +13,7 @@ class Tag(models.Model):
         'Название тега',
         max_length=200
     )
-    color = ColorField(
+    colour = ColorField(
         'Цвет',
         format='hex',
         max_length=7
