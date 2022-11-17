@@ -185,3 +185,12 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f'{self.recipe}, {self.user}'
+
+
+class TagReceipt(models.Model):
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Теги'
+        verbose_name_plural = verbose_name
