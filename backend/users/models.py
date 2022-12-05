@@ -1,81 +1,67 @@
-# from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+from django.db.models import UniqueConstraint
 
-from django.contrib.auth import get_user_model  # временно
-User = get_user_model()  # временно
 
-'''class User(AbstractUser):
-    """User model."""
-    # USER = 'user'
-    # MODERATOR = 'moderator'
-    # ADMIN = 'admin'
-    # ROLE_CHOICES = (
-    #     (USER, 'user'),
-    #     (MODERATOR, 'moderator'),
-    #     (ADMIN, 'admin'),
-    # )
-    email = models.EmailField(
-        'e-mail',
-        max_length=254,
-        unique=True,
-        verbose_name='Адрес электронной почты',
-        help_text='Введите ваш адрес электронной почты'
-    )
-    username = models.CharField(
-        'Юзернейм пользователя',
-        max_length=150,
-        unique=True,
-        verbose_name='Юзернейм',
-        help_text='Введите юзернейм'
-    )
+class User(AbstractUser):
+    """ Модель пользователя. """
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('username', 'first_name', 'last_name', )
     first_name = models.CharField(
-        'Имя пользователя',
-        max_length=150,
         verbose_name='Имя',
-        help_text='Введите ваше имя'
+        max_length=150
     )
     last_name = models.CharField(
-        'Фамилия пользователя',
         max_length=150,
         verbose_name='Фамилия',
-        help_text='Введите вашу фамилию'
+    )
+    email = models.EmailField(
+        max_length=254,
+        verbose_name='email',
+        unique=True
+    )
+    username = models.CharField(
+        verbose_name='username',
+        max_length=150,
+        unique=True,
+        validators=(UnicodeUsernameValidator(), )
     )
 
-    def __str__(self) -> str:
+    class Meta:
+        ordering = ('username', )
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
         return self.username
 
 
-    # @property
-    # def is_moderator(self):
-    #     return self.role == self.MODERATOR
-
-    # @property
-    # def is_admin(self):
-    #     return self.role == self.ADMIN
-'''
-
-
-class Subscription(models.Model):
+class Follow(models.Model):
+    """ Модель подписки на автора. """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='follower'
+        verbose_name='Автор',
+        related_name='follower',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        verbose_name='Подписчик',
         related_name='following'
     )
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
+        ordering = ('-id', )
         constraints = [
-            models.UniqueConstraint(
-                fields=('user', 'author',),
-                name='unique_follower'
+            UniqueConstraint(
+                fields=('user', 'author'),
+                name='unique_follow'
             )
         ]
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
-    def __str__(self):
-        return f'{self.user}, {self.author}'
+    def __str__(self) -> str:
+        return f"{self.user} подписан на {self.author}"
