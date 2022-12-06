@@ -6,7 +6,7 @@ from users.models import User
 
 
 class Tag(models.Model):
-    """ Модель тегов."""
+    """Tags model."""
     name = models.CharField(
         max_length=200,
         db_index=True,
@@ -26,15 +26,17 @@ class Tag(models.Model):
     )
 
     class Meta:
+        """Model's meta parameters."""
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
     def __str__(self) -> str:
+        """String representation method."""
         return self.name
 
 
 class Ingredient(models.Model):
-    """ Модель ингридиентов. """
+    """Ingredients model."""
     name = models.CharField(
         max_length=200,
         db_index=True,
@@ -46,15 +48,17 @@ class Ingredient(models.Model):
     )
 
     class Meta():
+        """Model's meta parameters."""
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
 
     def __str__(self) -> str:
+        """String representation method."""
         return f'{self.name}, {self.measurement_unit}'
 
 
 class Recipe(models.Model):
-    """ Модель рецептов. """
+    """Recipes model."""
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -91,16 +95,18 @@ class Recipe(models.Model):
     )
 
     class Meta:
+        """Model's meta parameters."""
         ordering = ('-pub_date',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
     def __str__(self) -> str:
+        """String representation method."""
         return self.name
 
 
 class IngredientRecipe(models.Model):
-    """ Ингридиенты рецепта """
+    """Ingredients of recipe model."""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -120,6 +126,7 @@ class IngredientRecipe(models.Model):
     )
 
     class Meta:
+        """Model's meta parameters."""
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
         constraints = [
@@ -130,13 +137,12 @@ class IngredientRecipe(models.Model):
         ]
 
     def __str__(self) -> str:
-        return (
-            f'{self.ingredient.name}, {self.recipe.name}'
-        )
+        """String representation method."""
+        return f'{self.ingredient.name}, {self.recipe.name}'
 
 
 class Favorite(models.Model):
-    """ Модель добавление в избраное. """
+    """Adding recipe to favourites model."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -151,6 +157,7 @@ class Favorite(models.Model):
     )
 
     class Meta:
+        """Model's meta parameters."""
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
         constraints = [
@@ -161,11 +168,12 @@ class Favorite(models.Model):
         ]
 
     def __str__(self) -> str:
+        """String representation method."""
         return f'{self.recipe}, {self.user}'
 
 
 class ShoppingCart(models.Model):
-    """ Модель списка покупок. """
+    """Shopping cart model."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -180,8 +188,10 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
+        """Model's meta parameters."""
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """String representation method."""
         return f'{self.user}, {self.recipe}'

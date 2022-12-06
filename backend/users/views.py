@@ -1,3 +1,5 @@
+from api.paginator import CustomPaginator
+from api.serializers import ShowSubscriptionsSerializer, UserSerializer
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -6,11 +8,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from users.models import Follow, User
 
-from api.paginator import CustomPaginator
-from api.serializers import ShowSubscriptionsSerializer, UserSerializer
-
 
 class UserViewSet(UserViewSet):
+    """Users' model processing viewset."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = CustomPaginator
@@ -18,6 +18,7 @@ class UserViewSet(UserViewSet):
 
     @action(detail=True, methods=['POST', 'DELETE'])
     def subscribe(self, request, **kwargs):
+        """Method allows follow any user or unfollow."""
         user = request.user
         author_id = self.kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
@@ -39,6 +40,7 @@ class UserViewSet(UserViewSet):
 
     @action(detail=False)
     def subscriptions(self, request):
+        """Method shows user's subscriptions."""
         user = request.user
         queryset = User.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)

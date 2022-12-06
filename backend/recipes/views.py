@@ -1,25 +1,24 @@
-from django.http.response import HttpResponse
-from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                            ShoppingCart, Tag)
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
-
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import CustomPaginator
 from api.permissions import AuthorOrAdmileElseReadOnly
 from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
-                             IngredientSerializer, ShowRecipeSerializer,
-                             ShoppingCartSerializer, TagSerializer)
+                             IngredientSerializer, ShoppingCartSerializer,
+                             ShowRecipeSerializer, TagSerializer)
+from django.http.response import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
+                            ShoppingCart, Tag)
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    """ Вывод тегов """
+    """Tags' model processing viewset."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [AllowAny]
@@ -27,7 +26,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """ Вывод ингредиентов """
+    """Ingredients' model processing viewset."""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
     permission_classes = [AllowAny]
@@ -38,7 +37,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """ Вывод работы с рецептами """
+    """Recipes' model processing viewset."""
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
     permission_classes = [AuthorOrAdmileElseReadOnly]
@@ -47,6 +46,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
+        """Method chooses a serializer depending on the request type."""
         if self.request.method == 'GET':
             return ShowRecipeSerializer
         return CreateRecipeSerializer
@@ -55,6 +55,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False, methods=["GET"], permission_classes=[IsAuthenticated]
     )
     def download_shopping_cart(self, request):
+        """Method of downloading a shopping cart."""
         final_list = {}
         ingredients = IngredientRecipe.objects.filter(
             recipe__shopping_list__user=request.user
@@ -84,9 +85,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         height = 700
         for i, (name, data) in enumerate(final_list.items(), 1):
             page.drawString(
-                75,
-                height,
-                (
+                75, height, (
                     f'{i}. {name} - {data["amount"]} '
                     f'{data["measurement_unit"]}'
                 ),
@@ -98,13 +97,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class FavCartBasicViewSet(viewsets.ModelViewSet):
+    """Basic viewset for favourite recepes and shopping cart."""
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+        """Method creates favourite or shopping list."""
         data_my = {
             'user': request.user.id,
             'recipe': kwargs.get('id')
-
         }
         serializer = self.get_serializer(data=data_my)
         serializer.is_valid(raise_exception=True)
@@ -112,9 +112,11 @@ class FavCartBasicViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer, *args, **kwargs):
+        """Author parameter substitution method while creating a recipe."""
         serializer.save(serializer.validated_data)
 
     def delete(self, request, *args, **kwargs):
+        """Method destroys favourite or shopping list."""
         favorite = kwargs.get('id')
         self.model.objects.filter(
             user=request.user.id,
@@ -124,14 +126,14 @@ class FavCartBasicViewSet(viewsets.ModelViewSet):
 
 
 class FavoriteViewSet(FavCartBasicViewSet):
-    """ Вывод избранных рецептов  """
+    """Favourite recipes' model processing viewset."""
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     model = Favorite
 
 
 class ShoppingCartViewSet(FavCartBasicViewSet):
-    """ Вывод списка покупок """
+    """Shopping cart model processing viewset."""
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
     model = ShoppingCart
