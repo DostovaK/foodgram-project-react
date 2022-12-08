@@ -1,6 +1,7 @@
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import CustomPaginator
-from api.permissions import AuthorOrAdmileElseReadOnly
+from api.permissions import (IsAdminOrReadOnly, IsAuthorOrReadOnly,
+                             IsModeratorOrReadOnly)
 from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              IngredientSerializer, ShoppingCartSerializer,
                              ShowRecipeSerializer, TagSerializer)
@@ -13,7 +14,8 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 
@@ -22,7 +24,6 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [AllowAny]
-    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -33,14 +34,16 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = CustomPaginator
     filter_backends = [IngredientFilter, ]
     search_fields = ['^name', ]
-    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
     queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
-    permission_classes = [AuthorOrAdmileElseReadOnly]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly | IsModeratorOrReadOnly | IsAdminOrReadOnly
+    ]
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
@@ -96,7 +99,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return response
 
 
-class FavCartBasicViewSet(viewsets.ModelViewSet):
+class FavoritesShoppingCartBasicViewSet(viewsets.ModelViewSet):
     """Basic viewset for favourite recepes and shopping cart."""
     permission_classes = [IsAuthenticated]
 
@@ -125,14 +128,14 @@ class FavCartBasicViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class FavoriteViewSet(FavCartBasicViewSet):
+class FavoriteViewSet(FavoritesShoppingCartBasicViewSet):
     """Favourite recipes' model processing viewset."""
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
     model = Favorite
 
 
-class ShoppingCartViewSet(FavCartBasicViewSet):
+class ShoppingCartViewSet(FavoritesShoppingCartBasicViewSet):
     """Shopping cart model processing viewset."""
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer

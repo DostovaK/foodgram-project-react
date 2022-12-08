@@ -1,3 +1,4 @@
+from django.db.models import Exists, OuterRef
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
@@ -12,7 +13,7 @@ from .utils import if_is_in_fav_or_shop_list
 
 class UserSerializer(UserSerializer):
     """User serializer."""
-    is_subscribed = SerializerMethodField(read_only=True)
+    is_subscribed = SerializerMethodField()
 
     class Meta:
         model = User
@@ -28,9 +29,21 @@ class UserSerializer(UserSerializer):
     def get_is_subscribed(self, obj):
         """Method for handling the 'is_subscribed' subscriptions parameter."""
         user = self.context.get('request').user
+        # is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj.id).exists()
+        return User.objects.annotate(
+            is_subscribed=Exists(Follow.objects.filter(user=user, author=OuterRef('id')))
+        )
+
+
+#        user = self.context.get('request').user
+ #       if user.is_anonymous:
+  #          return False
+   #     return Follow.objects.filter(user=user, author=obj.id).exists()
+
+
+
 
 
 class CreateUserSerializer(UserCreateSerializer):
@@ -195,15 +208,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     @staticmethod
     def create_ingredients(ingredients, recipe):
         """Method creates ingredients."""
+        ingredients_list = []
         for ingredient_data in ingredients:
-            ingredient = ingredient_data.pop('id')
-            amount = ingredient_data.pop('amount')
-            ingredient = Ingredient.objects.get(id=ingredient.id)
-            IngredientRecipe.objects.create(
-                ingredient=ingredient,
-                amount=amount,
-                recipe=recipe
+            ingredients_list.append(
+                IngredientRecipe(
+                    ingredient=ingredient_data.pop('id'),
+                    amount=ingredient_data.pop('amount'),
+                    recipe=recipe,
+                )
             )
+        IngredientRecipe.objects.bulk_create(ingredients_list)
 
     @staticmethod
     def create_tags(tags, recipe):
