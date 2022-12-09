@@ -1,3 +1,5 @@
+from django.db.models import Exists, OuterRef
+from django.shortcuts import get_object_or_404
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import CustomPaginator
 from api.permissions import (IsAdminOrReadOnly, IsAuthorOrReadOnly,
@@ -17,6 +19,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
+from users.models import User
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -38,7 +41,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
-    queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
@@ -47,6 +49,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
+
+    def get_queryset(self):
+        """Method returns a queryset with required properties."""
+        user = get_object_or_404(User, id=self.request.user.id)
+        is_favorited = Favorite.objects.filter(
+            user=user,
+            recipe=OuterRef('id')
+        )
+        is_in_shopping_cart = ShoppingCart.objects.filter(
+            user=user,
+            recipe=OuterRef('id')
+        )
+        return Recipe.objects.annotate(
+            is_favorited=Exists(is_favorited),
+            is_in_shopping_cart=Exists(is_in_shopping_cart)
+        )
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""

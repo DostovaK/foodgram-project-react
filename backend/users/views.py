@@ -1,3 +1,4 @@
+from django.db.models import Exists, OuterRef
 from api.paginator import CustomPaginator
 from api.serializers import ShowSubscriptionsSerializer, UserSerializer
 from django.shortcuts import get_object_or_404
@@ -11,10 +12,17 @@ from users.models import Follow, User
 
 class UserViewSet(UserViewSet):
     """Users' model processing viewset."""
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = CustomPaginator
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Method returns a queryset with required properties."""
+        user = self.context.get('request').user
+        is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
+        return User.objects.annotate(
+            is_subscribed=Exists(is_subscribed)
+        )
 
     @action(detail=True, methods=['POST', 'DELETE'])
     def subscribe(self, request, **kwargs):

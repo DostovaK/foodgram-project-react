@@ -26,23 +26,12 @@ class UserSerializer(UserSerializer):
             'is_subscribed',
         )
 
+
     def get_is_subscribed(self, obj):
-        """Method for handling the 'is_subscribed' subscriptions parameter."""
         user = self.context.get('request').user
-        # is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
         if user.is_anonymous:
             return False
-        return User.objects.annotate(
-            is_subscribed=Exists(Follow.objects.filter(user=user, author=OuterRef('id')))
-        )
-
-
-#        user = self.context.get('request').user
- #       if user.is_anonymous:
-  #          return False
-   #     return Follow.objects.filter(user=user, author=obj.id).exists()
-
-
+        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
 
@@ -189,7 +178,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all()
     )
-    image = Base64ImageField(max_length=None)
+    image = Base64ImageField()
     author = UserSerializer(read_only=True)
 
     class Meta:
