@@ -49,7 +49,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    # queryset = Recipe.objects.all()
 
     def get_queryset(self):
         """Method returns a queryset with required properties."""
