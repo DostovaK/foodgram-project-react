@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django_filters.rest_framework import CharFilter, FilterSet, filters
+from django_filters.rest_framework import FilterSet, filters
 from recipes.models import Ingredient, Recipe
 from rest_framework.filters import SearchFilter
 
@@ -8,7 +8,7 @@ User = get_user_model()
 
 class IngredientFilter(SearchFilter):
     """Products search filter model."""
-    name = CharFilter(field_name="name", lookup_expr="startswith")
+    search_param = 'name'
 
     class Meta:
         model = Ingredient
@@ -37,5 +37,5 @@ class RecipeFilter(FilterSet):
     def if_is_in_shopping_cart(self, queryset, name, value):
         """'if_is_in_shopping_cart' parameter filter processing method."""
         if value and self.request.user.is_authenticated:
-            return queryset.filter(cart__user=self.request.user)
+            return queryset.filter(shopping_list__user=self.request.user)
         return
