@@ -10,7 +10,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'default-value')
 
 DEBUG = os.getenv('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['158.160.20.4', 'localhost', 'recipehelper.ddns.net']
+ALLOWED_HOSTS = ['*']
 
 AUTH_USER_MODEL = 'users.User'
 
