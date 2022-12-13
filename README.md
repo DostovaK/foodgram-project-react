@@ -52,28 +52,25 @@
 ## Инструкции по установке на облаке:
 Cоздайте файл .env в директории /infra/ с содержанием:
 
-```SECRET_KEY=секретный ключ django
+```
+SECRET_KEY=секретный ключ django
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 DB_HOST=db
-DB_PORT=5432```
+DB_PORT=5432
+```
 
 
-* Запустите docker compose:
-```bash
-docker-compose up -d --build
-```  
+Запустите docker compose:
+```docker-compose up -d --build```  
 
 Примените миграции:
-``` sudo docker-compose exec backend python manage.py migrate
-```
+```sudo docker-compose exec backend python manage.py migrate```
 
 Загрузите ингредиенты:
-```sudo docker-compose exec backend python manage.py load_data
-```
+```sudo docker-compose exec backend python manage.py load_data```
 
 Соберите статику:
-```sudo docker-compose exec backend python manage.py collectstatic --noinput
-```
+```sudo docker-compose exec backend python manage.py collectstatic --noinput```
