@@ -42,9 +42,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
     serializer_class = CreateRecipeSerializer
-    permission_classes = [
-        IsAuthorOrReadOnly, IsModeratorOrReadOnly, IsAdminOrReadOnly
-    ]
+    permission_classes = [IsAuthorOrReadOnly]
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
