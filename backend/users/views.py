@@ -15,7 +15,6 @@ class UserViewSet(UserViewSet):
     """Users' model processing viewset."""
     serializer_class = UserSerializer
     pagination_class = CustomPaginator
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Method returns a queryset with required properties."""
@@ -25,7 +24,10 @@ class UserViewSet(UserViewSet):
             is_subscribed=Exists(is_subscribed)
         )
 
-    @action(detail=True, methods=['POST', 'DELETE'])
+    @action(
+        detail=True, methods=['POST', 'DELETE'],
+        permission_classes=[IsAuthenticated]
+    )
     def subscribe(self, request, **kwargs):
         """Method allows follow any user or unfollow."""
         user = request.user
@@ -47,7 +49,7 @@ class UserViewSet(UserViewSet):
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False)
+    @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         """Method shows user's subscriptions."""
         user = request.user
