@@ -1,39 +1,39 @@
-# from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef
 from django.http.response import HttpResponse
-# from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import CustomPaginator
-from api.permissions import IsAuthorOrReadOnly
+from api.permissions import AuthorOrAdmileElseReadOnly
 from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              IngredientSerializer, ShoppingCartSerializer,
                              ShowRecipeSerializer, TagSerializer)
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
-# from users.models import User
+from users.models import User
 
 
 class TagViewSet(viewsets.ModelViewSet):
     """Tags' model processing viewset."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = [AllowAny]
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Ingredients' model processing viewset."""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly, )
+    permission_classes = [AllowAny]
     filter_backends = [IngredientFilter, ]
     search_fields = ['^name', ]
 
@@ -41,27 +41,26 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
     serializer_class = CreateRecipeSerializer
-    permission_classes = [IsAuthorOrReadOnly, ]
+    permission_classes = [AuthorOrAdmileElseReadOnly]
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    queryset = Recipe.objects.all()
 
-    # def get_queryset(self):
-    #     """Method returns a queryset with required properties."""
-    #     user = get_object_or_404(User, id=self.request.user.id)
-    #     is_favorited = Favorite.objects.filter(
-    #         user=user,
-    #         recipe=OuterRef('id')
-    #     )
-    #     is_in_shopping_cart = ShoppingCart.objects.filter(
-    #         user=user,
-    #         recipe=OuterRef('id')
-    #     )
-    #     return Recipe.objects.annotate(
-    #         is_favorited=Exists(is_favorited),
-    #         is_in_shopping_cart=Exists(is_in_shopping_cart)
-    #     )
+    def get_queryset(self):
+        """Method returns a queryset with required properties."""
+        user = get_object_or_404(User, id=self.request.user.id)
+        is_favorited = Favorite.objects.filter(
+            user=user,
+            recipe=OuterRef('id')
+        )
+        is_in_shopping_cart = ShoppingCart.objects.filter(
+            user=user,
+            recipe=OuterRef('id')
+        )
+        return Recipe.objects.annotate(
+            is_favorited=Exists(is_favorited),
+            is_in_shopping_cart=Exists(is_in_shopping_cart)
+        )
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""
@@ -116,7 +115,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FavoritesShoppingCartBasicViewSet(viewsets.ModelViewSet):
     """Basic viewset for favourite recepes and shopping cart."""
-    permission_classes = (IsAuthenticated, )
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         """Method creates favourite or shopping list."""
