@@ -12,7 +12,8 @@ from .utils import if_is_in_fav_or_shop_list
 
 class UserSerializer(UserSerializer):
     """User serializer."""
-  #  is_subscribed = SerializerMethodField(read_only=True)
+    is_subscribed = SerializerMethodField(read_only=True)
+ #   is_subscribed = serializers.BooleanField(default=False)
 
     class Meta:
         model = User
@@ -25,12 +26,12 @@ class UserSerializer(UserSerializer):
             'is_subscribed',
         )
 
-    # def get_is_subscribed(self, obj):
-    #     """Method for handling the 'is_subscribed' subscriptions parameter."""
-    #     user = self.context.get('request').user
-    #     if user.is_anonymous:
-    #         return False
-    #     return Follow.objects.filter(user=user, author=obj.id).exists()
+    def get_is_subscribed(self, obj):
+        """Method for handling the 'is_subscribed' subscriptions parameter."""
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
 class CreateUserSerializer(UserCreateSerializer):
@@ -63,6 +64,7 @@ class ShowSubscriptionsSerializer(UserSerializer):
             'recipes',
             'recipes_count',
         )
+        read_only_fields = ('email', 'username', 'first_name', 'last_name',)
 
     def validate(self, data):
         """Method for validating if user is trying to follow him-/herself
@@ -137,6 +139,8 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
     )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    # is_favorited = serializers.BooleanField(default=False)
+    # is_in_shopping_cart = serializers.BooleanField(default=False)
     image = Base64ImageField()
 
     class Meta:
@@ -157,6 +161,7 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
     def get_ingredients(self, obj):
         """Products collection method."""
         ingredients = IngredientRecipe.objects.filter(recipe=obj)
+       # ingredients = IngredientRecipe.objects.prefetch_related('recipes')
         return IngredientRecipeSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
@@ -167,7 +172,6 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
         """Method for handling 'is_in_shopping_cart' parameter in the cart."""
         return if_is_in_fav_or_shop_list(self, obj, ShoppingCart)
 
-
 class CreateRecipeSerializer(serializers.ModelSerializer):
     """Recipe creation serializer."""
     ingredients = IngredientRecipeSerializer(
@@ -176,7 +180,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all()
     )
-    image = Base64ImageField(max_length=None)
+    image = Base64ImageField()
     author = UserSerializer(read_only=True)
 
     class Meta:
@@ -195,15 +199,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     @staticmethod
     def create_ingredients(ingredients, recipe):
         """Method creates ingredients."""
+        ingredients_list = []
         for ingredient_data in ingredients:
-            ingredient = ingredient_data.pop('id')
-            amount = ingredient_data.pop('amount')
-            ingredient = Ingredient.objects.get(id=ingredient.id)
-            IngredientRecipe.objects.create(
-                ingredient=ingredient,
-                amount=amount,
-                recipe=recipe
+            ingredients_list.append(
+                IngredientRecipe(
+                    ingredient=ingredient_data.pop('id'),
+                    amount=ingredient_data.pop('amount'),
+                    recipe=recipe,
+                )
             )
+        IngredientRecipe.objects.bulk_create(ingredients_list)
 
     @staticmethod
     def create_tags(tags, recipe):
