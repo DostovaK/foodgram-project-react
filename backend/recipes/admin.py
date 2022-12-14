@@ -40,10 +40,6 @@ class RecipeAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
     inlines = (IngredientInline,)
 
-    @staticmethod
-    def amount_ingredients(obj):
-        return "\n".join([i[0] for i in obj.ingredients.values_list('name')])
-
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
