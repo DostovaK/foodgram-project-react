@@ -57,14 +57,9 @@ coverage.xml
 
 # Django stuff:
 *.log
-.log
-main.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-.db
-*.db
-db.
 
 # Flask stuff:
 instance/
@@ -135,20 +130,6 @@ dmypy.json
 
 # .idea
 .idea
-.DS_Store
-.AppleDouble
-.LSOverride
-
-*.sublime-project
-*.sublime-workspace
-
-.vscode/
-*.code-workspace'.vscode/ 
-.vscode
-vscode/
 
 static/
-/media
-/media/
-.media
 media/

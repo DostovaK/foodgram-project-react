@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-                     ShoppingCart, Tag)
+from .models import (Favorite, Ingredient, IngredientRecipe,
+                     Recipe, ShoppingCart, Tag)
 
 
 class IngredientInline(admin.TabularInline):
@@ -33,16 +33,12 @@ class RecipeAdmin(admin.ModelAdmin):
     """Recipes admin zone settings."""
     list_display = (
         'id', 'author', 'name',
-        'text', 'cooking_time', 'pub_date', 'amount_ingredients',
+        'text', 'cooking_time', 'pub_date',
     )
     search_fields = ('name', 'author', 'tags',)
     list_filter = ('name', 'author', 'tags',)
     empty_value_display = '-пусто-'
     inlines = (IngredientInline,)
-
-    @staticmethod
-    def amount_ingredients(obj):
-        return "\n".join([i[0] for i in obj.ingredients.values_list('name')])
 
 
 @admin.register(Favorite)
