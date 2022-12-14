@@ -7,6 +7,7 @@ from rest_framework.fields import SerializerMethodField
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from users.models import Follow, User
+from utils import if_is_in_fav_or_shop_list
 
 
 class UserSerializer(UserSerializer):
@@ -26,10 +27,10 @@ class UserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if self.context.get('request').user.is_anonymous:
+        user = self.context.get('request').user
+        if user.is_anonymous:
             return False
-        return obj.following.filter(user=request.user).exists()
+        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
 class CreateUserSerializer(UserCreateSerializer):
@@ -162,16 +163,12 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
         return IngredientRecipeSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return obj.favorites.filter(user=request.user).exists()
+        """Favorite's 'is_favorited' parameter handling method."""
+        return if_is_in_fav_or_shop_list(self, obj, Favorite)
 
     def get_is_in_shopping_cart(self, obj):
-        request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return obj.shopping_list.filter(user=request.user).exists()
+        """Method for handling 'is_in_shopping_cart' parameter in the cart."""
+        return if_is_in_fav_or_shop_list(self, obj, ShoppingCart)
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
