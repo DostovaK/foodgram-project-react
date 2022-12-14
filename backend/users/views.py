@@ -16,6 +16,7 @@ class UserViewSet(UserViewSet):
     serializer_class = UserSerializer
     pagination_class = CustomPaginator
     permission_classes = (IsAuthenticated, )
+    queryset = User.objects.all()
 
     # def get_queryset(self):
     #     """Method returns a queryset with required properties."""

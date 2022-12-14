@@ -173,6 +173,7 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
             return False
         return obj.shopping_list.filter(user=request.user).exists()
 
+
 class CreateRecipeSerializer(serializers.ModelSerializer):
     """Recipe creation serializer."""
     ingredients = IngredientRecipeSerializer(

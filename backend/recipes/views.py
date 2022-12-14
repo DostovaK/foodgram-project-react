@@ -17,9 +17,7 @@ from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              IngredientSerializer, ShoppingCartSerializer,
                              ShowRecipeSerializer, TagSerializer)
-# from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
-#                             ShoppingCart, Tag)
-from recipes.models import (Favorite, Ingredient, IngredientRecipe,
+from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 # from users.models import User
 
@@ -47,6 +45,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
+    queryset = Recipe.objects.all()
 
     # def get_queryset(self):
     #     """Method returns a queryset with required properties."""
