@@ -1,6 +1,6 @@
-from django.db.models import Exists, OuterRef
+# from django.db.models import Exists, OuterRef
 from django.http.response import HttpResponse
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -19,7 +19,7 @@ from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              ShowRecipeSerializer, TagSerializer)
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
-from users.models import User
+# from users.models import User
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -46,21 +46,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
 
-    def get_queryset(self):
-        """Method returns a queryset with required properties."""
-        user = get_object_or_404(User, id=self.request.user.id)
-        is_favorited = Favorite.objects.filter(
-            user=user,
-            recipe=OuterRef('id')
-        )
-        is_in_shopping_cart = ShoppingCart.objects.filter(
-            user=user,
-            recipe=OuterRef('id')
-        )
-        return Recipe.objects.annotate(
-            is_favorited=Exists(is_favorited),
-            is_in_shopping_cart=Exists(is_in_shopping_cart)
-        )
+    # def get_queryset(self):
+    #     """Method returns a queryset with required properties."""
+    #     user = get_object_or_404(User, id=self.request.user.id)
+    #     is_favorited = Favorite.objects.filter(
+    #         user=user,
+    #         recipe=OuterRef('id')
+    #     )
+    #     is_in_shopping_cart = ShoppingCart.objects.filter(
+    #         user=user,
+    #         recipe=OuterRef('id')
+    #     )
+    #     return Recipe.objects.annotate(
+    #         is_favorited=Exists(is_favorited),
+    #         is_in_shopping_cart=Exists(is_in_shopping_cart)
+    #     )
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""

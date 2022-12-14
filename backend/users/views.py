@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef
+# from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -17,13 +17,13 @@ class UserViewSet(UserViewSet):
     pagination_class = CustomPaginator
     permission_classes = (IsAuthenticated, )
 
-    def get_queryset(self):
-        """Method returns a queryset with required properties."""
-        user = get_object_or_404(User, id=self.request.user.id)
-        is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
-        return User.objects.annotate(
-            is_subscribed=Exists(is_subscribed)
-        )
+    # def get_queryset(self):
+    #     """Method returns a queryset with required properties."""
+    #     user = get_object_or_404(User, id=self.request.user.id)
+    #     is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
+    #     return User.objects.annotate(
+    #         is_subscribed=Exists(is_subscribed)
+    #     )
 
     @action(
         detail=True, methods=['POST', 'DELETE'],
