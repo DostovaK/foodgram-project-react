@@ -13,7 +13,8 @@ from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import CustomPaginator
-from api.permissions import AuthorOrAdmileElseReadOnly
+from api.permissions import (IsAdminOrReadOnly, IsAuthorOrReadOnly,
+                             IsModeratorOrReadOnly)
 from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              IngredientSerializer, ShoppingCartSerializer,
                              ShowRecipeSerializer, TagSerializer)
@@ -41,26 +42,30 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
     serializer_class = CreateRecipeSerializer
-    permission_classes = [AuthorOrAdmileElseReadOnly]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly | IsModeratorOrReadOnly | IsAdminOrReadOnly
+    ]
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
+    queryset = Recipe.objects.all() # временно, удали
 
-    def get_queryset(self):
-        """Method returns a queryset with required properties."""
-        user = get_object_or_404(User, id=self.request.user.id)
-        is_favorited = Favorite.objects.filter(
-            user=user,
-            recipe=OuterRef('id')
-        )
-        is_in_shopping_cart = ShoppingCart.objects.filter(
-            user=user,
-            recipe=OuterRef('id')
-        )
-        return Recipe.objects.annotate(
-            is_favorited=Exists(is_favorited),
-            is_in_shopping_cart=Exists(is_in_shopping_cart)
-        )
+    # def get_queryset(self):
+    #     """Method returns a queryset with required properties."""
+    #     user = get_object_or_404(User, id=self.request.user.id)
+    #     is_favorited = Favorite.objects.filter(
+    #         user=user,
+    #         recipe=OuterRef('id')
+    #     )
+    #     is_in_shopping_cart = ShoppingCart.objects.filter(
+    #         user=user,
+    #         recipe=OuterRef('id')
+    #     )
+    #     return Recipe.objects.annotate(
+    #         is_favorited=Exists(is_favorited),
+    #         is_in_shopping_cart=Exists(is_in_shopping_cart)
+    #     )
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""
