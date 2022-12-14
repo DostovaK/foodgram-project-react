@@ -1,4 +1,4 @@
-from rest_framework import permissions
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 # class IsAdminOrReadOnly(permissions.BasePermission):
@@ -16,12 +16,12 @@ from rest_framework import permissions
 #                 or request.user.is_admin or request.user.is_superuser)
 
 
-class IsAuthorOrReadOnly(permissions.BasePermission):
+class IsAuthorOrReadOnly(BasePermission):
     """Gives an oppurtunity to change data only to author."""
     def has_object_permission(self, request, view, obj):
         """Gives an oppurtunity to 'PUT', 'PATCH' or 'DELETE'
            only to author."""
-        return (request.method in permissions.SAFE_METHODS
+        return (request.method in SAFE_METHODS
                 or obj.author == request.user)
 
 
