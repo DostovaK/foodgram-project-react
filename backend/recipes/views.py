@@ -7,8 +7,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
@@ -27,14 +26,14 @@ class TagViewSet(viewsets.ModelViewSet):
     """Tags' model processing viewset."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Ingredients' model processing viewset."""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [IngredientFilter, ]
     search_fields = ['^name', ]
 
@@ -43,7 +42,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
     serializer_class = CreateRecipeSerializer
     permission_classes = [
-        IsAuthenticatedOrReadOnly,
         IsAuthorOrReadOnly | IsModeratorOrReadOnly | IsAdminOrReadOnly
     ]
     pagination_class = CustomPaginator
