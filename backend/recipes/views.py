@@ -26,14 +26,14 @@ class TagViewSet(viewsets.ModelViewSet):
     """Tags' model processing viewset."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = (IsAuthenticatedOrReadOnly, )
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Ingredients' model processing viewset."""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = (IsAuthenticatedOrReadOnly, )
     filter_backends = [IngredientFilter, ]
     search_fields = ['^name', ]
 
@@ -41,7 +41,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
     serializer_class = CreateRecipeSerializer
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = (IsAuthorOrReadOnly, )
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
@@ -115,7 +115,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 class FavoritesShoppingCartBasicViewSet(viewsets.ModelViewSet):
     """Basic viewset for favourite recepes and shopping cart."""
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated, )
 
     def create(self, request, *args, **kwargs):
         """Method creates favourite or shopping list."""

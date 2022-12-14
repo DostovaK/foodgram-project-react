@@ -15,6 +15,7 @@ class UserViewSet(UserViewSet):
     """Users' model processing viewset."""
     serializer_class = UserSerializer
     pagination_class = CustomPaginator
+    permission_classes = (IsAuthenticated, )
 
     def get_queryset(self):
         """Method returns a queryset with required properties."""
