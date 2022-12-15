@@ -7,6 +7,7 @@ from rest_framework.fields import SerializerMethodField
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from users.models import Follow, User
+from django.shortcuts import get_object_or_404
 
 
 class UserSerializer(UserSerializer):
@@ -172,41 +173,38 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    @staticmethod
-    def create_ingredients(recipe, ingredients):
-        ingredient_list = []
-        for ingredient_data in ingredients:
-            ingredient_list.append(
-                IngredientRecipe(
-                    ingredient=ingredient_data.pop('id'),
-                    amount=ingredient_data.pop('amount'),
-                    recipe=recipe,
-                )
+    def _create_ingredient_recipe_objects(self, ingredients, recipe):
+        """Вспомогательный метод для создания
+        объектов модели IngredientRecipe"""
+        for ingredient in ingredients:
+            ingredient_amount = ingredient.pop("amount")
+            ingredient_obj = get_object_or_404(
+                Ingredient, id=ingredient['ingredient']['id']
             )
-        IngredientRecipe.objects.bulk_create(ingredient_list)
-
-    def create(self, validated_data):
-        request = self.context.get('request', None)
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
-        recipe.tags.set(tags)
-        self.create_ingredients(recipe, ingredients)
+            IngredientRecipe.objects.get_or_create(
+                recipe=recipe,
+                ingredient=ingredient_obj,
+                amount=ingredient_amount
+            )
+            recipe.ingredients.add(ingredient_obj)
         return recipe
 
-    def update(self, instance, validated_data):
-        instance.tags.clear()
-        IngredientRecipe.objects.filter(recipe=instance).delete()
-        instance.tags.set(validated_data.pop('tags'))
+    def create(self, validated_data):
+        tags = validated_data.pop("tags")
         ingredients = validated_data.pop('ingredients')
-        self.create_ingredients(instance, ingredients)
-        return super().update(instance, validated_data)
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        return self._create_ingredient_recipe_objects(ingredients, recipe)
 
-    def to_representation(self, instance):
-        """Serializer result presentation method."""
-        return ShowRecipeSerializer(instance, context={
-            'request': self.context.get('request')
-        }).data
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        instance = super().update(instance, validated_data)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        instance.ingredients.clear()
+        self._create_ingredient_recipe_objects(ingredients, recipe=instance)
+        return instance
 
 
 class DemoRecipeSerializer(serializers.ModelSerializer):
