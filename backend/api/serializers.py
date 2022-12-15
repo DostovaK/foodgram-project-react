@@ -11,7 +11,8 @@ from users.models import Follow, User
 
 class UserSerializer(UserSerializer):
     """User serializer."""
-    is_subscribed = serializers.BooleanField(default=False) 
+    #  is_subscribed = serializers.BooleanField(default=False)
+    is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -23,6 +24,12 @@ class UserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
+
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if self.context.get('request').user.is_anonymous:
+            return False
+        return obj.following.filter(user=request.user).exists()
 
 
 class CreateUserSerializer(UserCreateSerializer):
@@ -88,11 +95,6 @@ class ShowSubscriptionsSerializer(UserSerializer):
             recipes = recipes[:int(recipes_limit)]
         serializer = DemoRecipeSerializer(recipes, many=True, read_only=True)
         return serializer.data
-
-    def get_ingredients(self, obj):
-        """Products collection method."""
-        ingredients = IngredientRecipe.objects.filter(recipe=obj)
-        return IngredientRecipeSerializer(ingredients, many=True).data
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -175,6 +177,10 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
                 user=self.context.get('request').user, recipe=obj
             ).exists()
         return False
+
+    def get_ingredients(self, obj):
+        ingredients = IngredientRecipe.objects.filter(recipe=obj)
+        return IngredientRecipeSerializer(ingredients, many=True).data
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
