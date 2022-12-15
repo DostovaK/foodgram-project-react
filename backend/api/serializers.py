@@ -7,7 +7,6 @@ from rest_framework.fields import SerializerMethodField
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from users.models import Follow, User
-from .utils import if_is_in_fav_or_shop_list
 
 
 class UserSerializer(UserSerializer):
