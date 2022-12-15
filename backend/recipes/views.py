@@ -60,7 +60,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 user=user,
                 recipe=OuterRef('id')
             )
-            return Recipe.objects.prefetch_related('recipes').annotate(
+            return Recipe.objects.prefetch_related('ingredients').annotate(
                 is_favorited=Exists(is_favorited),
                 is_in_shopping_cart=Exists(is_in_shopping_cart)
             )
