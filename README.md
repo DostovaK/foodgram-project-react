@@ -72,5 +72,6 @@ DB_PORT=5432
 Загрузите ингредиенты:
 ```sudo docker-compose exec backend python manage.py load_data```
 
+
 Соберите статику:
 ```sudo docker-compose exec backend python manage.py collectstatic --noinput```
