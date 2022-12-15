@@ -47,25 +47,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    queryset = Recipe.objects.all()
 
-    # def get_queryset(self):
-    #     """Method returns a queryset with required properties."""
-    #     user = self.request.user
-    #     if not user.is_anonymous:
-    #         is_favorited = Favorite.objects.filter(
-    #             user=user,
-    #             recipe=OuterRef('id')
-    #         )
-    #         is_in_shopping_cart = ShoppingCart.objects.filter(
-    #             user=user,
-    #             recipe=OuterRef('id')
-    #         )
-    #         return Recipe.objects.prefetch_related('ingredients').annotate(
-    #             is_favorited=Exists(is_favorited),
-    #             is_in_shopping_cart=Exists(is_in_shopping_cart)
-    #         )
-    #     return Recipe.objects.all()
+    def get_queryset(self):
+        """Method returns a queryset with required properties."""
+        user = self.request.user
+        if not user.is_anonymous:
+            is_favorited = Favorite.objects.filter(
+                user=user,
+                recipe=OuterRef('id')
+            )
+            is_in_shopping_cart = ShoppingCart.objects.filter(
+                user=user,
+                recipe=OuterRef('id')
+            )
+            return Recipe.objects.prefetch_related('recipes').annotate(
+                is_favorited=Exists(is_favorited),
+                is_in_shopping_cart=Exists(is_in_shopping_cart)
+            )
+        return Recipe.objects.all()
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""

@@ -16,15 +16,14 @@ class UserViewSet(UserViewSet):
     serializer_class = UserSerializer
     pagination_class = CustomPaginator
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
 
-    # def get_queryset(self):
-    #     """Method returns a queryset with required properties."""
-    #     user = get_object_or_404(User, id=self.request.user.id)
-    #     is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
-    #     return User.objects.annotate(
-    #         is_subscribed=Exists(is_subscribed)
-    #     )
+    def get_queryset(self):
+        """Method returns a queryset with required properties."""
+        user = get_object_or_404(User, id=self.request.user.id)
+        is_subscribed = Follow.objects.filter(user=user, author=OuterRef('id'))
+        return User.objects.annotate(
+            is_subscribed=Exists(is_subscribed)
+        )
 
     @action(detail=True, methods=['POST', 'DELETE'])
     def subscribe(self, request, **kwargs):

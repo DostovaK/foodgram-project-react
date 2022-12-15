@@ -11,8 +11,7 @@ from users.models import Follow, User
 
 class UserSerializer(UserSerializer):
     """User serializer."""
-    #  is_subscribed = serializers.BooleanField(default=False)
-    is_subscribed = SerializerMethodField(read_only=True)
+    is_subscribed = serializers.BooleanField(default=False)
 
     class Meta:
         model = User
@@ -24,12 +23,6 @@ class UserSerializer(UserSerializer):
             'last_name',
             'is_subscribed',
         )
-
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if self.context.get('request').user.is_anonymous:
-            return False
-        return obj.following.filter(user=request.user).exists()
 
 
 class CreateUserSerializer(UserCreateSerializer):
@@ -135,11 +128,9 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientRecipeSerializer(
         many=True, source='ingredient_amount'
     )
-    # is_favorited = serializers.BooleanField(default=False)
-    # is_in_shopping_cart = serializers.BooleanField(default=False)
+    is_favorited = serializers.BooleanField(default=False)
+    is_in_shopping_cart = serializers.BooleanField(default=False)
     image = Base64ImageField()
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -156,32 +147,6 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def get_is_favorited(self, obj):
-        """Favorite's 'is_favorited' parameter handling method."""
-        if (
-            self.context.get('request') is not None
-            and self.context.get('request').user.is_authenticated
-        ):
-            return Favorite.objects.filter(
-                user=self.context.get('request').user, recipe=obj
-            ).exists()
-        return False
-
-    def get_is_in_shopping_cart(self, obj):
-        """Method for handling 'is_in_shopping_cart' parameter in the cart."""
-        if (
-            self.context.get('request') is not None
-            and self.context.get('request').user.is_authenticated
-        ):
-            return ShoppingCart.objects.filter(
-                user=self.context.get('request').user, recipe=obj
-            ).exists()
-        return False
-
-    def get_ingredients(self, obj):
-        ingredients = IngredientRecipe.objects.filter(recipe=obj)
-        return IngredientRecipeSerializer(ingredients, many=True).data
-
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
     """Recipe creation serializer."""
@@ -193,7 +158,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
     )
     image = Base64ImageField()
     author = UserSerializer(read_only=True)
-    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
