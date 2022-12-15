@@ -1,14 +1,6 @@
 from rest_framework import permissions
 
 
-class IsAdminPermission(permissions.BasePermission):
-    """Gives an oppurtunity to check data only to admin."""
-    def has_permission(self, request, view):
-        """Gives an oppurtunity to 'POST' only to authorized admins."""
-        return request.user.is_authenticated and (
-            request.user.is_admin or request.user.is_superuser)
-
-
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Gives an oppurtunity to change data only to superuser."""
     def has_permission(self, request, view):
