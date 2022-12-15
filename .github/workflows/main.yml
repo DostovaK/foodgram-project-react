@@ -66,6 +66,7 @@ jobs:
           script: |
             cd infra
             sudo docker-compose down
+            sudo docker-compose rm foodgram_backend
             sudo docker pull kdostova/foodgram_frontend:latest
             sudo docker pull kdostova/foodgram_backend:latest
             touch .env
