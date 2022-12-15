@@ -41,6 +41,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
+    queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
@@ -50,21 +51,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
 
-    def get_queryset(self):
-        """Method returns a queryset with required properties."""
-        user = get_object_or_404(User, id=self.request.user.id)
-        is_favorited = Favorite.objects.filter(
-            user=user,
-            recipe=OuterRef('id')
-        )
-        is_in_shopping_cart = ShoppingCart.objects.filter(
-            user=user,
-            recipe=OuterRef('id')
-        )
-        return Recipe.objects.annotate(
-            is_favorited=Exists(is_favorited),
-            is_in_shopping_cart=Exists(is_in_shopping_cart)
-        )
+    # def get_queryset(self):
+    #     """Method returns a queryset with required properties."""
+    #     user = get_object_or_404(User, id=self.request.user.id)
+    #     is_favorited = Favorite.objects.filter(
+    #         user=user,
+    #         recipe=OuterRef('id')
+    #     )
+    #     is_in_shopping_cart = ShoppingCart.objects.filter(
+    #         user=user,
+    #         recipe=OuterRef('id')
+    #     )
+    #     return Recipe.objects.annotate(
+    #         is_favorited=Exists(is_favorited),
+    #         is_in_shopping_cart=Exists(is_in_shopping_cart)
+    #     )
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""
