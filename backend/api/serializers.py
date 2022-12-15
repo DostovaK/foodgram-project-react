@@ -205,13 +205,14 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Method updates recipes."""
+        tags = validated_data.pop("tags")
+        ingredients = validated_data.pop("ingredients")
+        instance = super().update(instance, validated_data)
         instance.tags.clear()
-        IngredientRecipe.objects.filter(recipe=instance).delete()
-        self.create_tags(validated_data.pop("tags"), instance)
-        self.create_ingredients(
-            validated_data.pop("ingredient_amount"), instance
-        )
-        return super().update(instance, validated_data)
+        instance.tags.set(tags)
+        instance.ingredients.clear()
+        self.create_ingredients(ingredients, recipe=instance)
+        return instance
 
     def to_representation(self, recipe):
         """Serializer result presentation method."""
