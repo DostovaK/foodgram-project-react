@@ -194,11 +194,10 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Method creates recipes."""
-        request = self.context.get('request', None)
-        tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredient_amount')
-        current_user = request.user
-        recipe = Recipe.objects.create(author=current_user, **validated_data)
+        author = self.context.get("request").user
+        tags = validated_data.pop("tags")
+        ingredients = validated_data.pop("ingredients")
+        recipe = Recipe.objects.create(author=author, **validated_data)
         self.create_tags(tags, recipe)
         self.create_ingredients(ingredients, recipe)
         return recipe
@@ -208,9 +207,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         instance.tags.clear()
         IngredientRecipe.objects.filter(recipe=instance).delete()
         self.create_tags(validated_data.pop("tags"), instance)
-        self.create_ingredients(
-            validated_data.pop("ingredients"), instance
-        )
+        self.create_ingredients(validated_data.pop("ingredients"), instance)
         return super().update(instance, validated_data)
 
     def to_representation(self, recipe):
