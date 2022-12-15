@@ -160,6 +160,7 @@ class Favorite(models.Model):
         """Model's meta parameters."""
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
+        default_related_name = 'favorites'
         constraints = [
             models.UniqueConstraint(
                 fields=('user', 'recipe',),
@@ -191,6 +192,7 @@ class ShoppingCart(models.Model):
         """Model's meta parameters."""
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
+        default_related_name = 'shopping_list'
 
     def __str__(self) -> str:
         """String representation method."""
