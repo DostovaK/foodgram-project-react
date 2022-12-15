@@ -1,24 +1,26 @@
- # from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef
 from django.http.response import HttpResponse
- # from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginator import CustomPaginator
-from api.permissions import IsAuthorOrReadOnly
+from api.permissions import (IsAdminOrReadOnly, IsAuthorOrReadOnly,
+                             IsModeratorOrReadOnly)
 from api.serializers import (CreateRecipeSerializer, FavoriteSerializer,
                              IngredientSerializer, ShoppingCartSerializer,
                              ShowRecipeSerializer, TagSerializer)
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
- # from users.models import User
+from users.models import User
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -39,12 +41,30 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipes' model processing viewset."""
-    queryset = Recipe.objects.all()
     serializer_class = CreateRecipeSerializer
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly | IsModeratorOrReadOnly | IsAdminOrReadOnly
+    ]
     pagination_class = CustomPaginator
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
+
+    def get_queryset(self):
+        """Method returns a queryset with required properties."""
+        user = get_object_or_404(User, id=self.request.user.id)
+        is_favorited = Favorite.objects.filter(
+            user=user,
+            recipe=OuterRef('id')
+        )
+        is_in_shopping_cart = ShoppingCart.objects.filter(
+            user=user,
+            recipe=OuterRef('id')
+        )
+        return Recipe.objects.prefetch_related('ingredients').annotate(
+            is_favorited=Exists(is_favorited),
+            is_in_shopping_cart=Exists(is_in_shopping_cart)
+        )
 
     def get_serializer_class(self):
         """Method chooses a serializer depending on the request type."""
