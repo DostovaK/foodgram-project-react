@@ -173,7 +173,7 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def create_ingredients(recipe, ingredients):
+    def create_ingredients(ingredients, recipe):
         """Method creates ingredients."""
         ingredients_list = []
         for ingredient_data in ingredients:
@@ -186,23 +186,29 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             )
         IngredientRecipe.objects.bulk_create(ingredients_list)
 
+    @staticmethod
+    def create_tags(tags, recipe):
+        """Method creates tags."""
+        for tag in tags:
+            recipe.tags.add(tag)
+
     def create(self, validated_data):
         """Method creates recipes."""
         request = self.context.get('request', None)
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
-        recipe.tags.set(tags)
-        self.create_ingredients(recipe, ingredients)
+        ingredients = validated_data.pop('ingredient_amount')
+        current_user = request.user
+        recipe = Recipe.objects.create(author=current_user, **validated_data)
+        self.create_tags(tags, recipe)
+        self.create_ingredients(ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
         """Method updates recipes."""
         instance.tags.clear()
         IngredientRecipe.objects.filter(recipe=instance).delete()
-        instance.tags.set(validated_data.pop('tags'))
-        ingredients = validated_data.pop('ingredients')
-        self.create_ingredients(instance, ingredients)
+        self.create_tags(validated_data.pop("tags"), instance)
+        self.create_ingredients(validated_data.pop("ingredients"), instance)
         return super().update(instance, validated_data)
 
     def to_representation(self, recipe):
