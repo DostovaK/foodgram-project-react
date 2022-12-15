@@ -173,7 +173,6 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-
     def _create_ingredient_recipe_objects(self, ingredients, recipe):
         """Вспомогательный метод для создания
         объектов модели IngredientRecipe"""
