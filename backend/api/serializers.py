@@ -147,6 +147,10 @@ class ShowRecipeSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
+    def get_ingredients(self, obj):
+        ingredients = IngredientRecipe.objects.filter(recipe=obj)
+        return IngredientRecipeSerializer(ingredients, many=True).data
+
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
     """Recipe creation serializer."""
